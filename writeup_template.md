@@ -1,8 +1,6 @@
 # **Finding Lane Lines on the Road** 
-
-## Writeup Template
-
-### You can use this file as a template for your writeup if you want to submit it as a markdown file. But feel free to use some other method and submit a pdf if you prefer.
+### Introduction
+This project marks left & right lane lines on given input videos of first-person view of a car travelling on a road.
 
 ---
 
@@ -21,13 +19,17 @@ The goals / steps of this project are the following:
 
 ### Reflection
 
-### 1. Describe your pipeline. As part of the description, explain how you modified the draw_lines() function.
+### 1. Project Pipeline
+My pipeline consists of the following steps. Each step takes its input from previous step:-
+- convert input image to grayscale
+- Apply Gaussian blur
+- Apply canny edge detection
+- Apply region of interest mask
+- Apply hough transform
 
-My pipeline consisted of 5 steps. First, I converted the images to grayscale, then I .... 
-
-In order to draw a single line on the left and right lanes, I modified the draw_lines() function by ...
-
-If you'd like to include images to show how the pipeline works, here is how to include an image: 
+At this point in the pipeline, the modified image looks like the below:
+![After Hough Transform][image1]
+# color image with lane lines marked = weighted_img(img with lines drawn, original image) 
 
 ![alt text][image1]
 
