@@ -1,56 +1,74 @@
 # **Finding Lane Lines on the Road** 
-[![Udacity - Self-Driving Car NanoDegree](https://s3.amazonaws.com/udacity-sdc/github/shield-carnd.svg)](http://www.udacity.com/drive)
+### Introduction
+This project marks left & right lane lines in a given input video of first-person view of a car travelling on a road.
 
-<img src="examples/laneLines_thirdPass.jpg" width="480" alt="Combined Image" />
-
-Overview
 ---
 
-When we drive, we use our eyes to decide where to go.  The lines on the road that show us where the lanes are act as our constant reference for where to steer the vehicle.  Naturally, one of the first things we would like to do in developing a self-driving car is to automatically detect lane lines using an algorithm.
+**Finding Lane Lines on the Road**
 
-In this project you will detect lane lines in images using Python and OpenCV.  OpenCV means "Open-Source Computer Vision", which is a package that has many useful tools for analyzing images.  
+The general solution behind finding lane lines is to make use of computer-vision techniques to detect edges in the image & apply further filters to focus on the edges we are interested in(lane lines). The CV algorithms we make use of are:
 
-To complete the project, two files will be submitted: a file containing project code and a file containing a brief write up explaining your solution. We have included template files to be used both for the [code](https://github.com/udacity/CarND-LaneLines-P1/blob/master/P1.ipynb) and the [writeup](https://github.com/udacity/CarND-LaneLines-P1/blob/master/writeup_template.md).The code file is called P1.ipynb and the writeup template is writeup_template.md 
+- Canny Algorithm for edge detection
+- Hough Transformation to detect lines from the edges
 
-To meet specifications in the project, take a look at the requirements in the [project rubric](https://review.udacity.com/#!/rubrics/322/view)
-
-
-Creating a Great Writeup
----
-For this project, a great writeup should provide a detailed response to the "Reflection" section of the [project rubric](https://review.udacity.com/#!/rubrics/322/view). There are three parts to the reflection:
-
-1. Describe the pipeline
-
-2. Identify any shortcomings
-
-3. Suggest possible improvements
-
-We encourage using images in your writeup to demonstrate how your pipeline works.  
-
-All that said, please be concise!  We're not looking for you to write a book here: just a brief description.
-
-You're not required to use markdown for your writeup.  If you use another method please just submit a pdf of your writeup. Here is a link to a [writeup template file](https://github.com/udacity/CarND-LaneLines-P1/blob/master/writeup_template.md). 
-
-
-The Project
 ---
 
-## If you have already installed the [CarND Term1 Starter Kit](https://github.com/udacity/CarND-Term1-Starter-Kit/blob/master/README.md) you should be good to go!   If not, you should install the starter kit to get started on this project. ##
+### 1. Solution Pipeline
+My pipeline consists of the following steps. Each step takes its input from previous step:-
+1. Convert input image to grayscale
+2. Apply Gaussian blur
+3. Apply canny edge detection
 
-**Step 1:** Set up the [CarND Term1 Starter Kit](https://github.com/udacity/CarND-Term1-Starter-Kit/blob/master/README.md) if you haven't already.
+<img src="test_output/canny_output.jpg" width=300>
 
-**Step 2:** Open the code in a Jupyter Notebook
+4. Apply region of interest mask
 
-You will complete the project code in a Jupyter notebook.  If you are unfamiliar with Jupyter Notebooks, check out [Udacity's free course on Anaconda and Jupyter Notebooks](https://classroom.udacity.com/courses/ud1111) to get started.
+Region of Interest(ROI) is the triangle extending from center to the bottom left & right corners.
 
-Jupyter is an Ipython notebook where you can run blocks of code and see results interactively.  All the code for this project is contained in a Jupyter notebook. To start Jupyter in your browser, use terminal to navigate to your project directory and then run the following command at the terminal prompt (be sure you've activated your Python 3 carnd-term1 environment as described in the [CarND Term1 Starter Kit](https://github.com/udacity/CarND-Term1-Starter-Kit/blob/master/README.md) installation instructions!):
+<img src="test_output/mask.jpg" width=300> 
 
-`> jupyter notebook`
+After overlaying the ROI on the canny output we get.
 
-A browser window will appear showing the contents of the current directory.  Click on the file called "P1.ipynb".  Another browser window will appear displaying the notebook.  Follow the instructions in the notebook to complete the project.  
+<img src="test_output/ROI_output.jpg" width=300> 
 
-**Step 3:** Complete the project and submit both the Ipython notebook and the project writeup
+5. Apply hough transform
 
-## How to write a README
-A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
+<img src="test_output/hough_output.jpg" width=300>
 
+6. Overlay the above image on the original image.
+
+This will result in the below final image.
+
+<img src="test_output/final_seg_output.jpg" width=300>
+
+
+### 2. Improvements to the pipeline
+We can think of an immediate improvement to the pipeline. Why not improve the region of interest mask? As we are only interested in the lane lines, we don't have to consider the central region of the triangle. Hence the ROI can be further trimmed down to the below.
+
+<img src="test_output/mask_2.jpg" width=100> 
+
+This has the immediate effect of filtering out the noise in between the lane lines.(This will help us with the challenge video later)
+
+Another improvement can be to join the multiple lane line-segments into a single line. To do this we have to improve the draw_lines function. The insight that I arrived at is as follows.
+
+- The slope of the left lane line is always +ve. Slope of right lane line is -ve
+- slope of the left lane line is > slope of line joining the center & bottom-left corner
+- slope of the right lane line is < slope of line joining the center & bottom-right corner
+
+These observations allow us to formulate the solution as shown below.
+
+- Group the total line segments in the image into two groups according to the criteria above.
+- Fit a line equation to each group using np.polyfit
+- end-points of left lane are intersection points of left-line eqn with the horizontals passing through the center & bottom border
+- end-points of right lane are intersection points of right-line eqn with the horizontals passing through the center & bottom border
+- Draw the left & right lanes from their end-points using cv2.drawlines function
+
+After applying the above improvements into our pipeline, we get the final ouput image as shown below.
+
+<img src="test_output/final_output.jpg" width=300>
+
+### 3. Possible future improvements to the pipeline
+
+The disadvantage with our pipeline is immediately obvious. We experience some of the problems in the challenge portion of the project. When the image has strong shadows and bright light on the road, differentiating between lane lines & other noise becomes difficult.
+
+Also when we are experiencing sharp turns on the road, we are actually looking at lane curves instead of lane lines. Hence we could experiment with fitting a polynomial to the lanes instead of a line.
