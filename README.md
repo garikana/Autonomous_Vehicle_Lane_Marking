@@ -1,10 +1,37 @@
 # **Finding Lane Lines on the Road** 
 ### Introduction
-This project marks left & right lane lines in a given input video of first-person view of a car travelling on a road.
+This project marks left & right lane lines in a input video of a first-person view of a car travelling on a road.
+
+### Installation & Dependencies
+The main file is the P1.ipynb jupyter notebook. You can clone this project to your local machine. Ideally you should be able to run the notebook on any machine having 
+
+- Python 3.5
+- numpy
+- openCV 
+- Matplotlib
+- Jupyter
+
+But I recommend downloading the below docker container image 
+
+`udacity/carnd-term1-starter-kit`
+
+Goto the project directory you cloned this to & run the jupyter notebook inside the container using the below command
+
+`docker run -it --rm --entrypoint "/run.sh" -p 8888:8888 -v `pwd`:/src udacity/carnd-term1-starter-kit`
+
+The input test images & video files are located in 
+
+- /test_images
+- /test_videos
+
+The annotated video output files are located in 
+
+- /test_videos_output
+
 
 ---
 
-**Finding Lane Lines on the Road**
+**Solution Outline**
 
 The general solution behind finding lane lines is to make use of computer-vision techniques to detect edges in the image & apply further filters to focus on the edges we are interested in(lane lines). The CV algorithms we make use of are:
 
